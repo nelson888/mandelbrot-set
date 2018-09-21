@@ -1,6 +1,7 @@
 package com.tambapps.mandelbrot
 
 import javax.swing.JFrame
+import java.awt.BasicStroke
 import java.awt.Graphics
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -8,7 +9,6 @@ import java.awt.event.MouseListener
 import java.awt.event.MouseMotionListener
 import java.awt.image.BufferedImage
 
-//TODO IMPLEMENT REPAINTING
 class MandelbrotImage extends JFrame {
 
     private final Closure<Integer> compute
@@ -32,12 +32,11 @@ class MandelbrotImage extends JFrame {
         update()
     }
 
-
     void update() {
         int height = getHeight()
         int width = getWidth()
-        int halfWidth = width / 2
-        int halfHeight = height / 2
+        int halfWidth = width >> 1
+        int halfHeight = height >> 1
         for (int y = - halfHeight; y < halfHeight; y++) {
             for (int x = - halfWidth; x < halfWidth; x++) {
                 aX = cX + x * scale
@@ -50,6 +49,25 @@ class MandelbrotImage extends JFrame {
     @Override
     void paint(Graphics graphics) {
         graphics.drawImage(image, 0, 0, this)
+        graphics.setStroke(new BasicStroke(getHeight()/100)) //defined in Graphics2D
+        mouseEventListener.drawRectangle(graphics)
+    }
+
+    void reboundImage(int x, int y) {
+        cX += scale * (x - getWidth()/2)
+        cY += scale * (y - getHeight()/2)
+        scale *= 0.5
+        update()
+        repaintAll()
+        println("scale: $scale")
+        println("cX: $cX")
+        println("cY: $cY")
+        println()
+    }
+
+    private void repaintAll() {
+        revalidate()
+        repaint()
     }
 
     private class MouseEventListener implements MouseListener, MouseMotionListener {
@@ -75,8 +93,9 @@ class MandelbrotImage extends JFrame {
         void mouseReleased(MouseEvent mouseEvent) {
             if (isLeftButton(mouseEvent)) {
                 pressing = false
-                upPoint = boundedPoint(mouseEvent.getPoint())
+                reboundImage((int) ((downPoint.x + upPoint.x) / 2), (int) ((downPoint.y + upPoint.y) / 2))
             }
+            repaintAll()
         }
 
         @Override
@@ -93,6 +112,7 @@ class MandelbrotImage extends JFrame {
         void mouseDragged(MouseEvent mouseEvent) {
             if (pressing) {
                 upPoint = boundedPoint(mouseEvent.getPoint())
+                repaintAll()
             }
         }
 
