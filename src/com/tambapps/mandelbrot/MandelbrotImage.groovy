@@ -1,10 +1,8 @@
 package com.tambapps.mandelbrot
 
 import javax.swing.JFrame
-import java.awt.BasicStroke
 import java.awt.Graphics
 import java.awt.Point
-import java.awt.Stroke
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.awt.event.MouseMotionListener
@@ -13,9 +11,7 @@ import java.awt.image.BufferedImage
 class MandelbrotImage extends JFrame {
 
     private final MandelbrotComputer compute
-    private final MouseEventListener mouseEventListener
     private final BufferedImage image
-    private final Stroke stroke
     private double cX = 0.0
     private double cY = 0.0
     private double aX
@@ -25,10 +21,9 @@ class MandelbrotImage extends JFrame {
     MandelbrotImage(int x, int y, int width, int height, int maxIteration) {
         super("Mandelbrot set")
         setBounds(x, y, width, height)
-        stroke = new BasicStroke(Math.min(width, height) / 100)
         image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB)
         compute = new MandelbrotComputer(maxIteration)
-        mouseEventListener = new MouseEventListener()
+        def mouseEventListener = new MouseEventListener()
         addMouseListener(mouseEventListener)
         addMouseMotionListener(mouseEventListener)
         setDefaultCloseOperation(EXIT_ON_CLOSE)
@@ -52,7 +47,6 @@ class MandelbrotImage extends JFrame {
     @Override
     void paint(Graphics graphics) {
         graphics.drawImage(image, 0, 0, this)
-        graphics.setStroke(stroke) //defined in Graphics2D
     }
 
     void zoomImage(Point point) {
