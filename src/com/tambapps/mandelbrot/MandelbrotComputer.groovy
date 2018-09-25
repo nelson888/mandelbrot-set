@@ -3,9 +3,6 @@ package com.tambapps.mandelbrot
 class MandelbrotComputer extends Closure<Integer> {
 
     private final int maxIteration
-    private double zx
-    private double zy
-    private double tmp
 
     MandelbrotComputer(int maxIteration) {
         super(null)
@@ -13,6 +10,9 @@ class MandelbrotComputer extends Closure<Integer> {
     }
 
     Integer doCall(double cX, double cY) {
+        double zx
+        double zy
+        double tmp
         zx = zy = 0
         int iter = maxIteration
         while (zx * zx + zy * zy < 4 && iter > 0) {
