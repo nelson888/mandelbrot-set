@@ -4,6 +4,7 @@ import javax.swing.JFrame
 import java.awt.BasicStroke
 import java.awt.Graphics
 import java.awt.Point
+import java.awt.Stroke
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.awt.event.MouseMotionListener
@@ -11,9 +12,10 @@ import java.awt.image.BufferedImage
 
 class MandelbrotImage extends JFrame {
 
-    private final Closure<Integer> compute
+    private final MandelbrotComputer compute
     private final MouseEventListener mouseEventListener
     private final BufferedImage image
+    private final Stroke stroke
     private double cX = 0.0
     private double cY = 0.0
     private double aX
@@ -23,8 +25,9 @@ class MandelbrotImage extends JFrame {
     MandelbrotImage(int x, int y, int width, int height, int maxIteration) {
         super("Mandelbrot set")
         setBounds(x, y, width, height)
+        stroke = new BasicStroke(Math.min(width, height) / 100)
         image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB)
-        compute = new MandelbrotComputer(maxIteration).memoize()
+        compute = new MandelbrotComputer(maxIteration)
         mouseEventListener = new MouseEventListener()
         addMouseListener(mouseEventListener)
         addMouseMotionListener(mouseEventListener)
@@ -35,7 +38,7 @@ class MandelbrotImage extends JFrame {
     void update() {
         int height = getHeight()
         int width = getWidth()
-        int halfWidth = width >> 1
+        int halfWidth = width >> 1 //divide by 2
         int halfHeight = height >> 1
         for (int y = - halfHeight; y < halfHeight; y++) {
             for (int x = - halfWidth; x < halfWidth; x++) {
@@ -49,13 +52,12 @@ class MandelbrotImage extends JFrame {
     @Override
     void paint(Graphics graphics) {
         graphics.drawImage(image, 0, 0, this)
-        graphics.setStroke(new BasicStroke(getHeight()/100)) //defined in Graphics2D
-        mouseEventListener.drawRectangle(graphics)
+        graphics.setStroke(stroke) //defined in Graphics2D
     }
 
-    void reboundImage(int x, int y) {
-        cX += scale * (x - getWidth()/2)
-        cY += scale * (y - getHeight()/2)
+    void zoomImage(Point point) {
+        cX += scale * (point.x - getWidth() / 2)
+        cY += scale * (point.y - getHeight() / 2)
         scale *= 0.5
         update()
         repaintAll()
@@ -71,80 +73,34 @@ class MandelbrotImage extends JFrame {
     }
 
     private class MouseEventListener implements MouseListener, MouseMotionListener {
-        private static final int MIN_SIZE = 2
-        private boolean pressing
-        private Point downPoint
-        private Point upPoint
 
         @Override
         void mouseClicked(MouseEvent mouseEvent) {
-
-        }
-
-        @Override
-        void mousePressed(MouseEvent mouseEvent) {
             if (isLeftButton(mouseEvent)) {
-                pressing = true
-                downPoint = boundedPoint(mouseEvent.getPoint())
+                zoomImage(mouseEvent.point)
             }
         }
 
         @Override
-        void mouseReleased(MouseEvent mouseEvent) {
-            if (isLeftButton(mouseEvent)) {
-                pressing = false
-                reboundImage((int) ((downPoint.x + upPoint.x) / 2), (int) ((downPoint.y + upPoint.y) / 2))
-            }
-            repaintAll()
-        }
+        void mousePressed(MouseEvent mouseEvent) {}
 
         @Override
-        void mouseEntered(MouseEvent mouseEvent) {
-
-        }
+        void mouseReleased(MouseEvent mouseEvent) {}
 
         @Override
-        void mouseExited(MouseEvent mouseEvent) {
-
-        }
+        void mouseEntered(MouseEvent mouseEvent) {}
 
         @Override
-        void mouseDragged(MouseEvent mouseEvent) {
-            if (pressing) {
-                upPoint = boundedPoint(mouseEvent.getPoint())
-                repaintAll()
-            }
-        }
+        void mouseExited(MouseEvent mouseEvent) {}
 
         @Override
-        void mouseMoved(MouseEvent mouseEvent) {
+        void mouseDragged(MouseEvent mouseEvent) {}
 
-        }
+        @Override
+        void mouseMoved(MouseEvent mouseEvent) {}
 
         boolean isLeftButton(MouseEvent mouseEvent) {
             return mouseEvent.button == MouseEvent.BUTTON1
-        }
-
-        Point boundedPoint(Point input) {
-            Point p = new Point()
-            p.x = boundedValue(input.x, getWidth())
-            p.y = boundedValue(input.y, getHeight())
-            return p
-        }
-
-        private int boundedValue(double current, int max) {
-            return Math.max(Math.min(max, (int)current), 0)
-        }
-
-        void drawRectangle(Graphics graphics) {
-            if (!pressing) return
-            int x = (int) Math.min(downPoint.x, upPoint.x)
-            int y = (int) Math.min(downPoint.y, upPoint.y)
-            int width = (int) Math.abs(downPoint.x - upPoint.x)
-            int height = (int) Math.abs(downPoint.y - upPoint.y)
-            if (width > MIN_SIZE && height > MIN_SIZE) {
-                graphics.drawRect(x, y, width, height)
-            }
         }
     }
 }
