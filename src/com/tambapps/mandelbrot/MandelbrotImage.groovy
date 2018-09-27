@@ -30,9 +30,11 @@ class MandelbrotImage extends JFrame {
         image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB)
         compute = new MandelbrotComputer(maxIteration)
         maxLineUpdate = height < 100 ? 1 : height / 100
-        def mouseEventListener = new MouseEventListener()
-        addMouseListener(mouseEventListener)
-        addMouseMotionListener(mouseEventListener)
+        new MouseEventListener().with {
+            addMouseListener(it)
+            addMouseMotionListener(it)
+        }
+
         setDefaultCloseOperation(EXIT_ON_CLOSE)
         updateAll()
     }
