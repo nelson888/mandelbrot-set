@@ -36,19 +36,19 @@ class MandelbrotImage extends JFrame {
         }
 
         setDefaultCloseOperation(EXIT_ON_CLOSE)
-        updateAll()
+        updateImage()
     }
 
-    void updateAll() {
-        update { int x, int y, int halfWidth, int halfHeight ->
+    void updateImage() {
+        updateImage { int x, int y, int halfWidth, int halfHeight ->
             updatePixel(x, y, halfWidth, halfHeight)
         }
     }
 
-    void update(Closure process) {
+    void updateImage(Closure process) {
         int height = getHeight()
         int width = getWidth()
-        int halfWidth = width >> 1 //divide by 2
+        int halfWidth = width >> 1
         int halfHeight = height >> 1
         for (int y = - halfHeight; y < halfHeight; y++) {
             for (int x = - halfWidth; x < halfWidth; x++) {
@@ -63,8 +63,8 @@ class MandelbrotImage extends JFrame {
         image.setRGB(x + halfWidth, y + halfHeight, compute(aX, aY))
     }
 
-    void asyncUpdateAndRender() {
-        update { int x, int y, int halfWidth, int halfHeight ->
+    void asyncUpdateAndRepaint() {
+        updateImage { int x, int y, int halfWidth, int halfHeight ->
             executorService.submit({
                 updatePixel(x, y, halfWidth, halfHeight)
             })
@@ -77,7 +77,7 @@ class MandelbrotImage extends JFrame {
                 executorService.take()
             }
             linesRemaining -= linesTaken
-            repaintAll()
+            render()
         }
     }
 
@@ -90,14 +90,14 @@ class MandelbrotImage extends JFrame {
         cX += scale * (point.x - getWidth() / 2)
         cY += scale * (point.y - getHeight() / 2)
         scale *= 0.5
-        asyncUpdateAndRender()
+        asyncUpdateAndRepaint()
         println("scale: $scale")
         println("cX: $cX")
         println("cY: $cY")
         println()
     }
 
-    private void repaintAll() {
+    private void render() {
         revalidate()
         repaint()
     }
